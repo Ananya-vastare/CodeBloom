@@ -1,0 +1,413 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#F5F6FB">
+    <meta name="description"
+        content="CodeBloom is an AI-powered code explainer that helps you understand programming logic, functionality and complexity.">
+
+    <title>CodeBloom — Understand Code Differently</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <script
+        type="module"
+        src="https://unpkg.com/@splinetool/viewer@1.10.38/build/spline-viewer.js">
+    </script>
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+
+    <div class="spline-background" aria-hidden="true">
+<!-- 
+        <spline-viewer
+            url="https://prod.spline.design/CF9Ld-YHEd-q9OMw/scene.splinecode">
+        </spline-viewer> -->
+        <spline-viewer
+            url="https://prod.spline.design/02nXACAXgtN6Qccq/scene.splinecode" ></spline-viewer>
+    </div>
+
+
+    <!-- =====================================
+         MAIN CONTENT
+    ====================================== -->
+
+    <main class="container">
+
+        <!-- HERO -->
+
+        <section class="hero">
+
+            <h1>
+                <span>CodeBloom</span>.
+            </h1>
+
+            <p>
+                Understand programming logic, one line at a time.
+            </p>
+
+        </section>
+
+
+        <!-- SECTION TITLE -->
+
+        <div class="section-top">
+
+            <h2>Code workspace</h2>
+
+        </div>
+
+
+        <!-- WORKSPACE -->
+
+        <section class="workspace">
+
+
+            <!-- CODE EDITOR -->
+
+            <div class="editor-panel">
+
+                <div class="editor-header">
+
+                    <div class="editor-title">
+                        Paste your code
+                    </div>
+
+                    <span class="editor-label">
+                        SOURCE EDITOR
+                    </span>
+
+                </div>
+
+
+                <textarea
+                    id="input"
+                    maxlength="15000"
+                    spellcheck="false"
+                    autocomplete="off"
+                    autocapitalize="off"
+                    aria-label="Enter source code"
+                    placeholder="// Paste your code here...
+
+// Example:
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println(&quot;Hello World&quot;);
+    }
+}"></textarea>
+
+
+                <div class="editor-footer">
+
+                    <span class="editor-hint">
+                        Supports multiple programming languages.
+                    </span>
+
+                    <button
+                        type="button"
+                        class="submit-btn"
+                        id="submit">
+
+                        Explain code →
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- OUTPUT SECTION -->
+
+            <section class="output-section">
+
+                <div class="output-heading">
+
+                    <h2>The explanation.</h2>
+
+                    <p>02 / YOUR RESULTS</p>
+
+                </div>
+
+
+                <div
+                    id="output"
+                    aria-live="polite"
+                    aria-atomic="true">
+
+                    <div class="empty-state">
+
+                        <div class="empty-line"></div>
+
+                        <p>
+                            Your code explanation will appear here.
+                        </p>
+
+                        <p>
+                            Paste your code and select Explain code.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </section>
+
+
+    </main>
+    <script>
+
+        const codeInput = document.getElementById("input");
+        const submitButton = document.getElementById("submit");
+        const output = document.getElementById("output");
+
+        const MAX_CODE_LENGTH = 15000;
+
+
+        function showLoading() {
+
+            const loading = document.createElement("div");
+
+            loading.className = "loading-state";
+
+            const spinner = document.createElement("div");
+
+            spinner.className = "loader";
+
+            const message = document.createElement("p");
+
+            message.textContent =
+                "Gemini is analysing your code...";
+
+            loading.append(spinner, message);
+
+            output.replaceChildren(loading);
+
+        }
+
+
+        // =====================================
+        // ERROR HANDLING
+        // =====================================
+
+        function showError(message) {
+
+            const error = document.createElement("p");
+
+            error.className = "error-message";
+
+            error.textContent = message;
+
+            output.replaceChildren(error);
+
+        }
+
+
+        // =====================================
+        // CODE ANALYSIS
+        // =====================================
+
+        async function analyseCode() {
+
+            const code = codeInput.value;
+
+
+            // Validate empty code
+
+            if (!code.trim()) {
+
+                showError("Please enter some code first.");
+
+                codeInput.focus();
+
+                return;
+
+            }
+
+
+            // Validate input length
+
+            if (code.length > MAX_CODE_LENGTH) {
+
+                showError(
+                    "Code exceeds the maximum limit of 15000 characters."
+                );
+
+                return;
+
+            }
+
+
+            // Prevent duplicate submissions
+
+            if (submitButton.disabled) {
+
+                return;
+
+            }
+
+
+            submitButton.disabled = true;
+
+            submitButton.textContent = "Analysing...";
+
+            showLoading();
+
+
+            // Measure request duration
+
+            const startTime = performance.now();
+
+
+            try {
+
+                // Send code to Spring Boot
+
+                const response = await fetch("/code/get", {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        code: code
+                    })
+
+                });
+
+
+                // Read response
+
+                const explanation = await response.text();
+
+
+                // Handle HTTP errors
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        `HTTP ${response.status}: ${explanation}`
+                    );
+
+                }
+
+
+                if (!explanation.trim()) {
+
+                    throw new Error(
+                        "Gemini returned an empty explanation."
+                    );
+
+                }
+
+
+                // Calculate response time
+
+                const elapsedTime = (
+                    (performance.now() - startTime) / 1000
+                ).toFixed(2);
+
+
+                console.log(
+                    `Analysis completed in ${elapsedTime} seconds`
+                );
+
+
+                // Create response elements
+
+                const result = document.createElement("div");
+
+                result.className = "explanation";
+
+                // Prevent submitted content from being interpreted as HTML
+
+                result.textContent = explanation;
+
+
+                const timing = document.createElement("p");
+
+                timing.className = "response-time";
+
+                timing.textContent =
+                    `Analysis completed in ${elapsedTime} seconds`;
+
+
+                // Display result
+
+                output.replaceChildren(timing, result);
+
+
+            } catch (error) {
+
+                console.error("CodeBloom Error:", error);
+
+                showError(
+                    "Unable to analyse the code: " + error.message
+                );
+
+
+            } finally {
+
+                // Restore button
+
+                submitButton.disabled = false;
+
+                submitButton.textContent = "Explain code →";
+
+            }
+
+        }
+
+
+        // =====================================
+        // EVENT LISTENERS
+        // =====================================
+
+        submitButton.addEventListener(
+            "click",
+            analyseCode
+        );
+
+
+        // Ctrl + Enter / Cmd + Enter shortcut
+
+        codeInput.addEventListener("keydown", (event) => {
+
+            if (
+                (event.ctrlKey || event.metaKey) &&
+                event.key === "Enter"
+            ) {
+
+                event.preventDefault();
+
+                analyseCode();
+
+            }
+
+        });
+
+    </script>
+
+</body>
+
+</html>
