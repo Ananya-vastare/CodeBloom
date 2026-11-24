@@ -1,6 +1,6 @@
 #  CodeBloom – AI Code Explainer
 
-**Understand code. Learn concepts. Write better programs.**
+**Understand code and learn concepts.**
 
 CodeBloom is an AI-powered code explanation application built using Java and Spring Boot. It helps developers understand source code by generating easy-to-follow explanations, analyzing code complexity, and providing optimization suggestions using the Gemini API.
 
