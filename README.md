@@ -133,3 +133,5 @@ CodeBloom/
 ---
 
 **CodeBloom 🌸 — Making code easier to understand, one explanation at a time.**
+
+Note: Measured API latency in Postman across 7 requests: 77 ms median, with the 6.64 s average driven by Gemini API response time
